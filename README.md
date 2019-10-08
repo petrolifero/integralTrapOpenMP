@@ -1,1 +1,1 @@
-# integralTrapOpenMP
+# labParalelo
