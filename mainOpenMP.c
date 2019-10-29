@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi.h>
+#include <omp.h>
 
 #define NUMBER_OF_TRAP 1024
 
@@ -38,34 +38,15 @@ int main(int argc, char* argv[])
         float x, i;
         integral = ( f(a) + f(b) ) /2.0;
         x = a;
-	MPI_Init(&argc,&argv);
-	int numOfProcessors;
-	MPI_Comm_size(MPI_COMM_WORLD, &numOfProcessors);
-	int my_rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-
-	int trapByProcess = n/numOfProcessors;
-	int min = my_rank*trapByProcess;
-	int max;
-	if(my_rank == numOfProcessors-1)
-	{
-		max=n;
-	}
-	else
-	{
-		max=(my_rank+1)*trapByProcess-1;
-	}
-        for( int j=min; j<=max; j++)
+	#pragma omp parallel
+	#pragma omp for private(x) reduction(+:integral_local)
+        for( int j=1; j<=n; j++)
         {
                 x = a + j*h;
                 integral_local += f(x);
         }
-	MPI_Reduce(&integral_local,&integral,1,MPI_FLOAT,MPI_SUM,0,MPI_COMM_WORLD);
-	if(my_rank == 0)
-	{
-	        integral *= h;
-		printf("%f\n",integral);
-	}
-	MPI_Finalize();
+	integral+=integral_local;
+        integral *= h;
+	printf("%f\n",integral);
 	return 0;
 }
