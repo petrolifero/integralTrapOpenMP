@@ -4,9 +4,16 @@
 #não esteja pequeno demais
 ulimit -s unlimited 
 
+echo trapezios
+
+
 echo Com MPI 
 time mpirun -np 20 build/mainMPI
 echo Com openMP 
 set OMP_NUM_THREADS=4
 time build/mainOpenMP
 
+
+
+echo manipulação de matrix
+time build/mainOpenMPMatrix
